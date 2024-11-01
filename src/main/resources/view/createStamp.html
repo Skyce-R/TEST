@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>电子合同demo</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+    <script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+
+<body>
+    <div th:object="${entity}">
+        <table>
+            <tr>
+                <td>用户唯一标识:</td>
+                <td><label for="userId"></label><input type="text" id="userId" name="userId" th:value="${entity.userId}"/></td>
+            </tr>
+            <tr>
+                <td>签名名称:</td>
+                <td><label for="autographName"></label><input type="text" id="autographName" name="autographName" th:value="${entity.autographName}"/></td>
+            </tr>
+            <tr>
+                <td>操作类型:</td>
+                <td>
+                    <label>
+                        <select id="operationMode">
+                            <th:block th:each="option: *{selectData.getOperationModeEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>创建印章类型:</td>
+                <td>
+                    <label>
+                        <select id="createStampType">
+                            <th:block th:each="option: *{selectData.getCreateSignetTypeEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>签名类型:</td>
+                <td>
+                    <label>
+                        <select id="autographType">
+                            <th:block th:each="option: *{selectData.getCreateTypeEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>上传图片:</td>
+                <td><label><input id="image" name="image" type="file" accept="image/*" onchange="changeFile(event)"></label></td>
+            </tr>
+            <tr>
+                <td>文件后缀名称:</td>
+                <td>
+                    <label>
+                        <select id="baseTypeName">
+                            <th:block th:each="option: *{selectData.getBaseTypeNameEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>签名颜色:</td>
+                <td>
+                    <label>
+                        <select id="color">
+                            <th:block th:each="option: *{selectData.getColorEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>签名宽度:</td>
+                <td>
+                    <label>
+                        <select id="width">
+                            <th:block th:each="option: *{selectData.getWidthEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.index}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>印章透明度:</td>
+                <td>
+                    <label>
+                        <select id="alpha">
+                            <th:block th:each="option: *{selectData.getAlphaEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.index}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>边框:</td>
+                <td>
+                    <label>
+                        <select id="border">
+                            <th:block th:each="option: *{selectData.getBorderEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>签名字体:</td>
+                <td>
+                    <label>
+                        <select id="fontType">
+                            <th:block th:each="option: *{selectData.getFontTypeEnumList}">
+                                <option th:value="${option.index}">
+                                    [[${option.description}]]
+                                </option>
+                            </th:block>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>是否做透明化处理:</td>
+                <td>
+                    <label>
+                        <select id="limpid">
+                            <option th:value="true">
+                                是
+                            </option>
+                            <option th:value="false">
+                                否
+                            </option>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+            <tr><td></td><td><input type="button" id="createStamp" value="提交" /></td></tr>
+        </table>
+    </div>
+    <div>
+        <label for="reqMsg"></label><textarea id="reqMsg" rows="10" cols="100"></textarea>
+    </div>
+    <div>
+        <label for="respMsg"></label><textarea id="respMsg" rows="10" cols="100"></textarea>
+    </div>
+<script>
+    var base64Code = "";
+    function changeFile(event) {
+        file = event.target.files[0];
+        var a = new FileReader();
+        a.onload = function (e) {
+            var base64Str = e.target.result;
+            base64Code= base64Str.substring(base64Str.indexOf(',')+1);
+        }
+        a.readAsDataURL(file);
+    }
+
+    $(function () {
+        $("#createStamp").click(function () {
+            let createStampReq = {
+                "userId": $("#userId").val(),
+                "autographType": $("#autographType").val(),
+                "autographName": $("#autographName").val(),
+                "autographBase64": base64Code,
+                "baseTypeName": $("#baseTypeName").val(),
+                "color": $("#color").val(),
+                "width": $("#width").val(),
+                "alpha": $("#alpha").val(),
+                "border": $("#border").val(),
+                "fontType": $("#fontType").val(),
+                "createStampType": $("#createStampType").val(),
+                "limpid": $("#limpid").val(),
+                "operationMode": $("#operationMode").val()
+            }
+            $.ajax({
+                url: "/stamp/create",
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify(createStampReq),
+                success: function (data) {
+                    $("#reqMsg").text("入参：" + JSON.stringify(data.reqMsg));
+                    $("#respMsg").text("返参：" + JSON.stringify(data.respMsg));
+                    if (data.status === 1) {
+                        alert("成功");
+                    } else {
+                        alert("失败");
+                    }
+                },
+                error: function (data) {
+                    $("#respMsg").text(JSON.stringify(data));
+                }
+            })
+        })
+    })
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<title>电子合同demo</title>
+	<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+	<script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+
+<body>
+	<div th:object="${entity}">
+		<table>
+			<tr>
+				<td>账号类型:</td>
+				<td>
+					<label>
+						<select id="type">
+							<th:block th:each="option: *{selectData.accountTypeList}">
+								<option th:value="${option.index}">
+									[[${option.description}]]
+								</option>
+							</th:block>
+						</select>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<td>姓名:</td>
+				<td><label for="name"></label><input type="text" id="name" name="name" th:value="${entity.displayName}"/></td>
+			</tr>
+			<tr>
+				<td>手机号:</td>
+				<td><label for="phone"></label><input type="text" id="phone" name="phone" th:value="${entity.phone}"/></td>
+			</tr>
+			<tr>
+				<td>邮箱:</td>
+				<td><label><input type="text" name="email" id="email" th:value="${entity.email}"/></label></td>
+			</tr>
+			<tr>
+				<td>证件类型:</td>
+				<td>
+					<label>
+						<select id="idCardType">
+							<th:block th:each="option: *{selectData.certificateTypeList}">
+								<option th:value="${option.index}">
+									[[${option.description}]]
+								</option>
+							</th:block>
+						</select>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<td>证件号:</td>
+				<td><label><input type="text" name="idCardNum" id="idCardNum" th:value="${entity.idCardNum}"/></label></td>
+			</tr>
+			<tr>
+				<td>账号:</td>
+				<td><label><input type="text" name="account" id="account" th:value="${entity.account}"/></label></td>
+			</tr>
+			<tr>
+				<td>实名认证来源:</td>
+				<td>
+					<label>
+						<select id="authentication">
+							<th:block th:each="option: *{selectData.authenticationList}">
+								<option th:value="${option.index}">
+									[[${option.description}]]
+								</option>
+							</th:block>
+						</select>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<td>用户标签:</td>
+				<td><label><input type="text" name="userLabel" id="userLabel" th:value="${entity.userLabel}"/></label></td>
+			</tr>
+			<tr>
+				<td>密码:</td>
+				<td><label><input type="text" name="passwd" id="passwd" th:value="${entity.passwd}"/></label></td>
+			</tr>
+			<tr>
+				<td>其他证件类型名称:</td>
+				<td><label><input type="text" name="otherCardName" id="otherCardName" th:value="${entity.otherCardName}"/></label></td>
+			</tr>
+			<tr><td></td><td><input type="button" id="createUser" value="提交" /></td></tr>
+		</table>
+	</div>
+	<div>
+		<label for="reqMsg"></label><textarea id="reqMsg" rows="10" cols="100"></textarea>
+	</div>
+	<div>
+		<label for="respMsg"></label><textarea id="respMsg" rows="10" cols="100"></textarea>
+	</div>
+<script>
+	$(function () {
+		$("#createUser").click(function () {
+			let createUserReq = {
+				"type": $("#type").val(),
+				"displayName": $("#name").val(),
+				"phone": $("#phone").val(),
+				"email": $("#email").val(),
+				"idCardType": $("#idCardType").val(),
+				"idCardNum": $("#idCardNum").val(),
+				"account": $("#account").val(),
+				"authentication": $("#authentication").val(),
+				"userLabel": $("#userLabel").val(),
+				"otherCardName": $("#otherCardName").val(),
+				"passwd": $("#passwd").val()
+			}
+			$.ajax({
+				url: "/user/create",
+				type: "POST",
+				dataType: "json",
+				contentType: "application/json",
+				data: JSON.stringify(createUserReq),
+				success: function (data) {
+					$("#reqMsg").text("入参：" + JSON.stringify(data.reqMsg));
+					$("#respMsg").text("返参：" + JSON.stringify(data.respMsg));
+					if (data.status === 1) {
+						alert("成功");
+					} else {
+						alert("失败");
+					}
+				},
+				error: function (data) {
+					$("#respMsg").text(JSON.stringify(data));
+				}
+			})
+		})
+	})
+
+</script>
+
+</body>
+</html>

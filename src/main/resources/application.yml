@@ -1,0 +1,55 @@
+server:
+  port: 7777
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: contract-api-demo
+  thymeleaf:
+    prefix: classpath:/view/
+    suffix: .html
+    mode: HTML5
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+    cache: false
+
+baseUrl: http://127.0.0.1:7727/apigate/contractapi
+#baseUrl: http://192.168.100.125:31490/apigate/contractapi
+#baseUrl: http://192.168.100.120:1016/apigate/contractapi
+
+#490
+appId: 205d4124ac9144
+serviceKye: 1e016e0377334289aec40dba71576e41
+companyUUID: M01193NSTILM0RX
+superManagerId: M01193MV42KPSRV
+userId: M01193MV42KPSRV
+enterpriseId: M01193NSTILM0RX
+
+
+#489
+#appId: 47401e56b36f4a
+#serviceKye: dc6a2cd371ef4b809cdc4bea77f40054
+#companyUUID: M01195PI9G1WEG1
+#superManagerId: M01193MV42KPSRV
+
+#1016
+#appId: acab04487d1446
+#serviceKye: 7055ce53efa3484db990512993643c47
+
+#appId: 205d4124ac9144
+#serviceKye: 1e016e0377334289aec40dba71576e41
+#companyUUID: M01193NSTILM0RX
+#superManagerId: M01193MV42KPSRV
+
+downloadPath: D:/
+
+loginName: 17600000001
+loginPassword: twy2020
+baseWebUrl: http://127.0.0.1:7727/webgate/contractweb
+baseUCUrl: http://127.0.0.1:7727/webgate/platform-uc
+
+platformType: company
+appCode: contractweb
+serviceCode: contract003
