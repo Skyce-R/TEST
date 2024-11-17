@@ -1,0 +1,384 @@
+Subject: [PATCH] Changes
+---
+Index: internal/app/service/contract/open.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/app/service/contract/open.go b/internal/app/service/contract/open.go
+--- a/internal/app/service/contract/open.go	(revision 971da6cbb863ae34d335e2437a3a0fe50ecb97f0)
++++ b/internal/app/service/contract/open.go	(date 1731812820543)
+@@ -5,6 +5,7 @@
+ 	"context"
+ 	"encoding/hex"
+ 	"fmt"
++	"go.mongodb.org/mongo-driver/bson/primitive"
+ 	"path"
+ 	"strings"
+ 	"time"
+@@ -1376,3 +1377,170 @@
+ 		URL: link,
+ 	}, nil
+ }
++
++func (*service) CheckIsDemandDepartmentUser(ctx context.Context, currentUser *do.User, detail *DetailVO) (*DetailVO, error) {
++	var personnelList []PersonnelInfo
++	for key, value := range detail.Contract.GetFieldDetail() {
++		if strings.HasPrefix(key, "zhixingbumenjingbanren_") {
++			if valSlice, ok := value.(primitive.A); ok && len(valSlice) > 0 {
++				// Extract personnel info
++				for _, item := range valSlice {
++					if personMap, ok := item.(map[string]interface{}); ok {
++
++						var id int
++						if idValue, exists := personMap["id"]; exists {
++							switch v := idValue.(type) {
++							case int:
++								id = v
++							case int32:
++								id = int(v)
++							case int64:
++								id = int(v)
++							case float64:
++								id = int(v)
++							default:
++								id = 0
++							}
++						}
++
++						var state int
++						if stateValue, exists := personMap["state"]; exists {
++							switch v := stateValue.(type) {
++							case int:
++								state = v
++							case int32:
++								state = int(v)
++							case int64:
++								state = int(v)
++							case float64:
++								state = int(v)
++							default:
++								state = 0
++							}
++						}
++
++						var name string
++						if nameValue, exists := personMap["name"]; exists {
++							if nameStr, ok := nameValue.(string); ok {
++								name = nameStr
++							} else {
++								name = ""
++							}
++						}
++
++						personnel := PersonnelInfo{
++							ID:    id,
++							Name:  name,
++							State: state,
++						}
++						personnelList = append(personnelList, personnel)
++					}
++				}
++			} else {
++				logrus.Errorf("Unexpected type for key %s: %T\n", key, value)
++			}
++		} else if strings.HasPrefix(key, "hetongxuqiubumenjingbanren_") {
++			if valSlice, ok := value.(primitive.A); ok && len(valSlice) > 0 {
++				for _, item := range valSlice {
++					if personMap, ok := item.(map[string]interface{}); ok {
++
++						var id int
++						if idValue, exists := personMap["id"]; exists {
++							switch v := idValue.(type) {
++							case int:
++								id = v
++							case int32:
++								id = int(v)
++							case int64:
++								id = int(v)
++							case float64:
++								id = int(v)
++							default:
++								id = 0
++							}
++						}
++
++						var state int
++						if stateValue, exists := personMap["state"]; exists {
++							switch v := stateValue.(type) {
++							case int:
++								state = v
++							case int32:
++								state = int(v)
++							case int64:
++								state = int(v)
++							case float64:
++								state = int(v)
++							default:
++								state = 0
++							}
++						}
++
++						var name string
++						if nameValue, exists := personMap["name"]; exists {
++							if nameStr, ok := nameValue.(string); ok {
++								name = nameStr
++							} else {
++								name = ""
++							}
++						}
++
++						personnel := PersonnelInfo{
++							ID:    id,
++							Name:  name,
++							State: state,
++						}
++						personnelList = append(personnelList, personnel)
++					}
++				}
++			} else {
++				logrus.Errorf("Unexpected type for key %s: %T\n", key, value)
++			}
++		}
++	}
++
++	//TODO 及其汇报层级往上的用户都不可见（截止到VP，不含VP）
++	userIDExistsInPersonnelList := false
++	for _, personnel := range personnelList {
++		if int64(personnel.ID) == currentUser.GetID() {
++			userIDExistsInPersonnelList = true
++			break
++		}
++
++		// 上级
++		//deptID := currentUser.GetDepartmentID()
++		//deptLeaders, err := getDeptLeaders(ctx, deptID)
++
++	}
++
++	if userIDExistsInPersonnelList {
++		// 对需求部门隐藏的字段进行过滤
++		for i, formField := range detail.ContractType.FormFields {
++			for j := len(formField.FieldList) - 1; j >= 0; j-- {
++				if formField.FieldList[j].HideFromDemandDept {
++					formField.FieldList = append(formField.FieldList[:j], formField.FieldList[j+1:]...)
++				}
++			}
++			detail.ContractType.FormFields[i].FieldList = formField.FieldList
++		}
++	}
++	parentIDs, err := do.D().GetDeptParentIDs(ctx, "tclcsot", currentUser.GetDepartmentID())
++	if err != nil {
++		return nil, err
++	}
++
++	for i := range parentIDs {
++		print(parentIDs[i])
++	}
++
++	return detail, nil
++}
++
++//func getDeptLeaders(ctx context.Context, deptID int64) ([]int64, error) {
++//	//TODO
++//
++//	do.Depts{}
++//	job.GetJobById()
++//
++//	return nil, nil
++//}
+Index: internal/app/api/http/v1/contract/handler.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/app/api/http/v1/contract/handler.go b/internal/app/api/http/v1/contract/handler.go
+--- a/internal/app/api/http/v1/contract/handler.go	(revision 971da6cbb863ae34d335e2437a3a0fe50ecb97f0)
++++ b/internal/app/api/http/v1/contract/handler.go	(date 1731812449330)
+@@ -3,16 +3,13 @@
+ import (
+ 	"encoding/json"
+ 	"fmt"
+-	"go.mongodb.org/mongo-driver/bson/primitive"
+-	"io"
+-	"strconv"
+-	"strings"
+-
+ 	"github.com/gin-gonic/gin"
+ 	"github.com/gin-gonic/gin/binding"
+ 	"github.com/pkg/errors"
+ 	"go.mongodb.org/mongo-driver/bson"
++	"io"
+ 	df "powerlaw.ai/meflow/controller/app/domain/file"
++	"strconv"
+ 
+ 	do "powerlaw.ai/meflow/controller/app/domain/org"
+ 	"powerlaw.ai/meflow/controller/internal/app/domain/contract/entity"
+@@ -421,147 +418,12 @@
+ 		return nil, err
+ 	}
+ 
+-	var personnelList []contract.PersonnelInfo
+-	for key, value := range detail.Contract.GetFieldDetail() {
+-		if strings.HasPrefix(key, "zhixingbumenjingbanren_") {
+-			if valSlice, ok := value.(primitive.A); ok && len(valSlice) > 0 {
+-				// Extract personnel info
+-				for _, item := range valSlice {
+-					if personMap, ok := item.(map[string]interface{}); ok {
+-
+-						var id int
+-						if idValue, exists := personMap["id"]; exists {
+-							switch v := idValue.(type) {
+-							case int:
+-								id = v
+-							case int32:
+-								id = int(v)
+-							case int64:
+-								id = int(v)
+-							case float64:
+-								id = int(v)
+-							default:
+-								id = 0
+-							}
+-						}
+-
+-						var state int
+-						if stateValue, exists := personMap["state"]; exists {
+-							switch v := stateValue.(type) {
+-							case int:
+-								state = v
+-							case int32:
+-								state = int(v)
+-							case int64:
+-								state = int(v)
+-							case float64:
+-								state = int(v)
+-							default:
+-								state = 0
+-							}
+-						}
+-
+-						var name string
+-						if nameValue, exists := personMap["name"]; exists {
+-							if nameStr, ok := nameValue.(string); ok {
+-								name = nameStr
+-							} else {
+-								name = ""
+-							}
+-						}
+-
+-						personnel := contract.PersonnelInfo{
+-							ID:    id,
+-							Name:  name,
+-							State: state,
+-						}
+-						personnelList = append(personnelList, personnel)
+-					}
+-				}
+-			} else {
+-				fmt.Printf("Unexpected type for key %s: %T\n", key, value)
+-			}
+-		} else if strings.HasPrefix(key, "hetongxuqiubumenjingbanren_") {
+-			if valSlice, ok := value.(primitive.A); ok && len(valSlice) > 0 {
+-				for _, item := range valSlice {
+-					if personMap, ok := item.(map[string]interface{}); ok {
+-
+-						var id int
+-						if idValue, exists := personMap["id"]; exists {
+-							switch v := idValue.(type) {
+-							case int:
+-								id = v
+-							case int32:
+-								id = int(v)
+-							case int64:
+-								id = int(v)
+-							case float64:
+-								id = int(v)
+-							default:
+-								id = 0
+-							}
+-						}
+-
+-						var state int
+-						if stateValue, exists := personMap["state"]; exists {
+-							switch v := stateValue.(type) {
+-							case int:
+-								state = v
+-							case int32:
+-								state = int(v)
+-							case int64:
+-								state = int(v)
+-							case float64:
+-								state = int(v)
+-							default:
+-								state = 0
+-							}
+-						}
+-
+-						var name string
+-						if nameValue, exists := personMap["name"]; exists {
+-							if nameStr, ok := nameValue.(string); ok {
+-								name = nameStr
+-							} else {
+-								name = ""
+-							}
+-						}
+-
+-						personnel := contract.PersonnelInfo{
+-							ID:    id,
+-							Name:  name,
+-							State: state,
+-						}
+-						personnelList = append(personnelList, personnel)
+-					}
+-				}
+-			} else {
+-				fmt.Printf("Unexpected type for key %s: %T\n", key, value)
+-			}
+-		}
++	result, err := h.contractService.CheckIsDemandDepartmentUser(ctx.Request.Context(), currentUser.(*do.User), detail)
++	if err != nil {
++		return nil, err
+ 	}
+ 
+-	//TODO 及其汇报层级往上的用户都不可见（截止到VP，不含VP）
+-	userIDExistsInPersonnelList := false
+-	for _, personnel := range personnelList {
+-		if int64(personnel.ID) == (currentUser).(*do.User).GetID() {
+-			userIDExistsInPersonnelList = true
+-			break
+-		}
+-	}
+-
+-	if userIDExistsInPersonnelList {
+-		// 对需求部门隐藏的字段进行过滤
+-		for i, formField := range detail.ContractType.FormFields {
+-			for j := len(formField.FieldList) - 1; j >= 0; j-- {
+-				if formField.FieldList[j].HideFromDemandDept {
+-					formField.FieldList = append(formField.FieldList[:j], formField.FieldList[j+1:]...)
+-				}
+-			}
+-			detail.ContractType.FormFields[i].FieldList = formField.FieldList
+-		}
+-	}
+-	return detail, nil
++	return result, nil
+ }
+ 
+ // @Description 删除合同
+Index: internal/app/service/contract/interface.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/app/service/contract/interface.go b/internal/app/service/contract/interface.go
+--- a/internal/app/service/contract/interface.go	(revision 971da6cbb863ae34d335e2437a3a0fe50ecb97f0)
++++ b/internal/app/service/contract/interface.go	(date 1731808407238)
+@@ -206,6 +206,7 @@
+ 		orgID string, id string, vo *ODeleteContractVO) error
+ 	GetContractPageURLFromOpenAPI(ctx context.Context,
+ 		orgID string, id string) (*OContractURL, error)
++	CheckIsDemandDepartmentUser(ctx context.Context, user *do.User, detail *DetailVO) (*DetailVO, error)
+ 	// ------------region OpenAPI -----------
+ 	// 自动保存
+ 
